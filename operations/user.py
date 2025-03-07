@@ -1,9 +1,6 @@
 from typing import Union
 from fastapi import FastAPI
 from schemas.Simple import UserCreate, UserUpdate
-from models.db.User import DB_User, DB_Reminder, DB_Avatar
-from models.db.Simple import Base, User
-from sqlalchemy.orm import declarative_base
 from pymongo.mongo_client import MongoClient
 from pymongo.server_api import ServerApi
 from utils.database import get_collection, insert_one, find_one, find_many, update_one, serialize_document
