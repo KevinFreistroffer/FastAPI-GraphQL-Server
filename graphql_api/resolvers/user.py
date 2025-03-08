@@ -1,7 +1,8 @@
 from ariadne import ObjectType, gql, make_executable_schema
 from operations.user_operations import get_all_users
+
 query = ObjectType("Query")
-user = ObjectType("User")
+mutation = ObjectType("Mutation")
 
 @query.field("users")
 def resolve_users(*_):
@@ -21,3 +22,5 @@ def resolve_name(user, info):
 @query.field("userByEmail")
 def resolve_email(user, info):
     return user.get("email")
+
+    

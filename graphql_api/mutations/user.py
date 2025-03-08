@@ -1,17 +1,7 @@
 from ariadne import ObjectType, gql, make_executable_schema
 
-type_defs = gql(
-    """
-    extend type Mutation {
-        createUser(name: String!, username: String!, email: String!, password: String!): User
-        updateUser(_id: ID!, name: String, password: String): User
-        deleteUser(_id: ID!): Boolean!
-    }
-    """
-)
-
 # query = ObjectType("Query")
-# mutation = ObjectType("Mutation")
+mutation = ObjectType("Mutation")
 # user = ObjectType("User")
 
 # @query.field("users")

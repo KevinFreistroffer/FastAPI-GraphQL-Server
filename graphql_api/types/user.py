@@ -1,6 +1,6 @@
 from ariadne import ObjectType, gql, make_executable_schema
 
-type_defs = gql(
+user = gql(
     """
     type User {
         _id: ID!
@@ -10,6 +10,19 @@ type_defs = gql(
         fullname: String
         createdAt: String!
         isVerified: Boolean!
+    }
+        
+    type Mutation {
+        createUser(name: String!, username: String!, email: String!, password: String!): User
+        updateUser(_id: ID!, name: String, password: String): User
+        deleteUser(_id: ID!): Boolean!
+    }
+
+    type Query {
+        users: [User]!
+        user(_id: ID!): User
+        userByUsername(username: String!): User
+        userByEmail(email: String!): User
     }
     """
 )
