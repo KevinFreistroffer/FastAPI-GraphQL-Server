@@ -3,7 +3,7 @@ from operations.user_operations import get_all_users
 from operations.user_operations import create_user
 from schemas.User import UserCreate
 from graphql import GraphQLError
-
+from pydantic import ValidationError
 
 query = ObjectType("Query")
 mutation = ObjectType("Mutation")
@@ -27,19 +27,11 @@ def resolve_name(user, info):
 def resolve_email(user, info):
     return user.get("email")
 
-"""
-        createUser(name: String!, username: String!, email: String!, password: String!): User
-        updateUser(_id: ID!, name: String, password: String): User
-        deleteUser(_id: ID!): Boolean!
-"""
 @mutation.field("create_user")
 def resolve_create_user(_, info, **user_info):
-    print("user_info", user_info)
     try:
         user = UserCreate(**user_info)
-        print("user", user)
         result = create_user(user)
-        print("result", result)
 
         if result.get("error"):
             return {
@@ -58,11 +50,12 @@ def resolve_create_user(_, info, **user_info):
             "error": None
         }
 
-    except ValueError as e:
+    except ValidationError as e:
         print("ValueError e", e)
+        error_msg = e.errors()[0]["msg"]
         return {
             "user": None,
-            "error": str(e)
+            "error": error_msg
         }
     except Exception as e:
         print("Exception e", e)
