@@ -1,5 +1,5 @@
 from ariadne import ObjectType, gql, make_executable_schema
-
+from operations.user_operations import get_all_users
 query = ObjectType("Query")
 user = ObjectType("User")
 
@@ -18,6 +18,6 @@ def resolve_users(*_):
 def resolve_name(user, info):
     return user.get("username")
 
-@query.field("email")
+@query.field("userByEmail")
 def resolve_email(user, info):
     return user.get("email")

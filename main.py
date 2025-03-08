@@ -6,25 +6,12 @@ from operations.user_operations import create_user, get_all_users, get_user_by_i
 from pymongo.errors import PyMongoError
 from defs.status_codes import StatusCode, create_error_response
 from graphql_api.schema import schema
-from graphql_api.types.user_types import user_type_defs
+from graphql_api.users.types import type_defs as user_type_defs
+from graphql_api.users.resolvers import user as user_resolvers, query as user_query_resolvers
 from ariadne.asgi import GraphQL
 from ariadne import ObjectType, gql, make_executable_schema, load_schema_from_path
-print(user_type_defs)
-query = ObjectType("Query")
+
 mutation = ObjectType("Mutation")
-user = ObjectType("User")
-
-@query.field("users")
-def resolve_users(*_):
-    try:
-        result = get_all_users()
-        if not result["users"]:
-            return []
-        return result["users"] 
-    except Exception as e:
-        print(f"Error fetching users: {e}")
-        return []
-
 
 type_defs = gql(
     """
@@ -53,14 +40,8 @@ type_defs = gql(
     """
 )
 
-schema = make_executable_schema(type_defs, query)
+schema = make_executable_schema([type_defs], [user_resolvers, user_query_resolvers])
 
-
-# type_defs = [
-#     base_defs,
-#     user_type_defs,
-#     user_query_defs
-# ]
 
 app = FastAPI()
 app.mount("/api/graphql", GraphQL(schema, debug=True))
