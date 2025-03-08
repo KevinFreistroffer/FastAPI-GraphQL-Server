@@ -1,6 +1,6 @@
 from typing import Union, Optional
 from fastapi import FastAPI
-from schemas.Simple import UserCreate, UserUpdate
+from schemas.User import UserCreate, UserUpdate
 from pymongo.mongo_client import MongoClient
 from pymongo.server_api import ServerApi
 from utils.database import get_collection, insert_one, find_one, find_many, update_one, serialize_document

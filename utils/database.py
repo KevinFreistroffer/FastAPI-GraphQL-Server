@@ -39,7 +39,6 @@ def get_collection(collection_name: str):
 
 # Add this helper function to convert MongoDB documents to JSON-serializable format
 def serialize_document(doc):
-    print(doc)
     """Convert MongoDB document to JSON-serializable format."""
     if isinstance(doc, ObjectId):
         return str(doc)

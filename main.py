@@ -1,7 +1,7 @@
 from typing import Union
 from fastapi import FastAPI, Response, HTTPException
 from fastapi.responses import JSONResponse
-from schemas.Simple import UserCreate, UserUpdate
+from schemas.User import UserCreate, UserUpdate
 from operations.user_operations import create_user, get_all_users, get_user_by_id, get_user_by_name, update_user
 from pymongo.errors import PyMongoError
 from defs.status_codes import StatusCode, create_error_response
