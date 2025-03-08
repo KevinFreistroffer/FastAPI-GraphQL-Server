@@ -13,11 +13,10 @@ app = FastAPI(prefix="/api")
 def create_user_handler(user: UserCreate, response: Response):
     try:
         result = create_user(user)
-        print("result", result)
         if "error" in result:
             return JSONResponse(
                 status_code=result["status_code"],
-                content={"error": "Could not created the user"}
+                content={"error": "Could not create the user"}
             )
         return result
     except PyMongoError as e:

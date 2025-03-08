@@ -4,6 +4,7 @@ from schemas.Simple import UserCreate, UserUpdate
 from pymongo.mongo_client import MongoClient
 from pymongo.server_api import ServerApi
 from utils.database import get_collection, insert_one, find_one, find_many, update_one, serialize_document
+from utils.hash import hash_password
 from defs.status_codes import StatusCode, create_error_response
 
 def get_user_with_retry(user_id, max_attempts: int = 3, delay: float = 0.5) -> Optional[dict]:
@@ -34,6 +35,7 @@ def create_user(user: UserCreate):
     
     # Attempt to save to DB
     user_dict = user.model_dump()
+    user_dict["password"] = hash_password(user_dict["password"])
     result = insert_one('users', user_dict)
 
     # Success
