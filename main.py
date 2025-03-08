@@ -6,6 +6,7 @@ from operations.user_operations import create_user, get_all_users, get_user_by_i
 from pymongo.errors import PyMongoError
 from defs.status_codes import StatusCode, create_error_response
 from graphql_api.schema import schema
+from ariadne import load_schema_from_path
 from ariadne.asgi import GraphQL
 
 app = FastAPI()

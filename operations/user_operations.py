@@ -81,6 +81,15 @@ def get_user_by_name(name: str):
         )
     return {"users": users}
 
+def get_user_by_username(username: str):
+    users = find_many('users', {"username": username})
+    if not users:
+        return create_error_response(
+            StatusCode.USER_NOT_FOUND,
+            "User not found"
+        )
+    return {"users": users}
+
 def update_user(user: UserUpdate):
     result = update_one(
         'users',

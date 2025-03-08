@@ -1,6 +1,5 @@
 from ariadne import ObjectType, gql, make_executable_schema
-from operations.user_operations import get_all_users
-from operations.user_operations import create_user
+from operations.user_operations import get_all_users, create_user, get_user_by_username
 from schemas.User import UserCreate
 from graphql import GraphQLError
 from pydantic import ValidationError
@@ -12,6 +11,7 @@ mutation = ObjectType("Mutation")
 def resolve_users(*_):
     try:
         result = get_all_users()
+        print("result", result)
         if not result["users"]:
             return []
         return result["users"] 
@@ -20,11 +20,30 @@ def resolve_users(*_):
         return []
 
 @query.field("user_by_username")
-def resolve_name(user, info):
-    return user.get("username")
+def resolve_get_user_by_username(obj, info, username):
+    try:
+        result = get_user_by_username(username)
+        users = result["users"]
+        print("result", result)
+        if not users or len(users) == 0:
+            return {
+                "user": None,
+                "error": None
+            } 
+        return {
+            "user": users[0],
+            "error": None
+        }
+    except Exception as e:
+        print(f"Error fetching users: {e}")
+        return {
+            "user": None,
+            "error": str(e)
+        }
+    # return user.get("username")
 
 @query.field("user_by_email")
-def resolve_email(user, info):
+def resolve_get_user_by_email(user, info):
     return user.get("email")
 
 @mutation.field("create_user")
