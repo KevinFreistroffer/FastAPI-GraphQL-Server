@@ -11,6 +11,8 @@ load_dotenv()
 
 MONGODB_URI = os.getenv('MONGODB_URI')
 
+exclude_fields = { "password": 0 }
+
 @lru_cache()
 def get_database():
     """
@@ -37,6 +39,7 @@ def get_collection(collection_name: str):
 
 # Add this helper function to convert MongoDB documents to JSON-serializable format
 def serialize_document(doc):
+    print(doc)
     """Convert MongoDB document to JSON-serializable format."""
     if isinstance(doc, ObjectId):
         return str(doc)
@@ -51,18 +54,19 @@ def insert_one(collection_name: str, document: dict):
     """Insert a single document into a collection."""
     collection = get_collection(collection_name)
     result = collection.insert_one(document)
-    return {"id": str(result.inserted_id)}  # Convert ObjectId to string
+    return result
+    return {"_id": str(result.inserted_id)}  # Convert ObjectId to string
 
 def find_one(collection_name: str, query: dict):
     """Find a single document in a collection."""
     collection = get_collection(collection_name)
-    result = collection.find_one(query)
+    result = collection.find_one(query, exclude_fields)
     return serialize_document(result) if result else None
 
 def find_many(collection_name: str, query: dict = None):
     """Find multiple documents in a collection."""
     collection = get_collection(collection_name)
-    results = list(collection.find(query or {}))
+    results = list(collection.find(query or {}, exclude_fields))
     return serialize_document(results)
 
 def update_one(collection_name: str, query: dict, update: dict):
