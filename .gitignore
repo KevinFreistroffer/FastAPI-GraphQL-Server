@@ -23,5 +23,4 @@ sql_app.db
 # Environment variables
 .env
 .env.local
-
-/email_service/
+/email_services/
