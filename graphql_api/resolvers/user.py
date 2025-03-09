@@ -152,56 +152,68 @@ def resolve_update_user(_, info, **user_info):
             "error": str(e)
         }
 
-@subscription.source("userCreated")
-async def user_created_source(obj, info):
-    queue = Queue()
+# @subscription.source("userCreated")
+# async def user_created_source(obj, info):
+#     print("user_created_source")
+#     print("user_created_source")
+#     print("user_created_source")
+#     print("user_created_source")
+#     print("user_created_source")
+#     print("user_created_source")
+#     print("user_created_source")
+#     queue = Queue()
     
-    # Get MongoDB collection
-    collection = get_collection('users')
+#     # Get MongoDB collection
+#     collection = get_collection('users')
     
-    # Create change stream
-    change_stream = collection.watch(
-        [{'$match': {'operationType': 'insert'}}],
-        full_document='updateLookup'
-    )
+#     # Create change stream
+#     change_stream = collection.watch(
+#         [{'$match': {'operationType': 'insert'}}],
+#         full_document='updateLookup'
+#     )
 
-    try:
-        async for change in change_stream:
-            # Get the new user document
-            user_doc = change['fullDocument']
+#     try:
+#         async for change in change_stream:
+#             # Get the new user document
+#             user_doc = change['fullDocument']
             
-            # Serialize the document
-            user = serialize_document(user_doc)
+#             # Serialize the document
+#             user = serialize_document(user_doc)
+#             print("user_created_source USER", user)
+#             # Remove password before sending
+#             if 'password' in user:
+#                 del user['password']
             
-            # Remove password before sending
-            if 'password' in user:
-                del user['password']
+#             # Trigger Lambda function for email
+#             lambda_client = boto3.client('lambda')
+#             lambda_client.invoke(
+#                 FunctionName='email-service-dev-hello',
+#                 InvocationType='Event',
+#                 Payload=json.dumps({
+#                     'user': user,
+#                     'email': user['email']
+#                 })
+#             )
             
-            # Trigger Lambda function for email
-            lambda_client = boto3.client('lambda')
-            lambda_client.invoke(
-                FunctionName='email-service-dev-hello',
-                InvocationType='Event',
-                Payload=json.dumps({
-                    'user': user,
-                    'email': user['email']
-                })
-            )
+#             # Put in queue for subscription
+#             await queue.put({
+#                 "user": user,
+#                 "error": None
+#             })
             
-            # Put in queue for subscription
-            await queue.put({
-                "user": user,
-                "error": None
-            })
-            
-    except Exception as e:
-        await queue.put({
-            "user": None,
-            "error": str(e)
-        })
+#     except Exception as e:
+#         await queue.put({
+#             "user": None,
+#             "error": str(e)
+#         })
     
-    return queue
+#     return queue
 
-@subscription.field("userCreated")
-def user_created_resolver(event, info):
-    return event
+# @subscription.field("userCreated")
+# def user_created_resolver(event, info):
+#     print("user_created_resolver")
+#     print("user_created_resolver")
+#     print("user_created_resolver")
+#     print("user_created_resolver")
+#     print("user_created_resolver")
+#     return event

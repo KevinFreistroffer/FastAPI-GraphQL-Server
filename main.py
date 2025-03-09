@@ -8,9 +8,43 @@ from defs.status_codes import StatusCode, create_error_response
 from graphql_api.schema import schema
 from ariadne import load_schema_from_path
 from ariadne.asgi import GraphQL
+from ariadne.asgi.handlers import GraphQLTransportWSHandler
+from motor.motor_asyncio import AsyncIOMotorClient
+from contextlib import asynccontextmanager
+import logging
+import os
+import pymongo
+from bson.json_util import dumps
+import asyncio
+import json
+from utils.watch_mongodb import watch_mongodb
 
-app = FastAPI()
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
+
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    # Start watcher in background task
+    logger.info("Starting lifespan")
+    watcher_task = asyncio.create_task(watch_mongodb())
+    logger.info("Watcher task created")
+    
+    yield
+    
+    # Cleanup
+    logger.info("Shutting down watcher")
+    watcher_task.cancel()
+    try:
+        await watcher_task
+    except asyncio.CancelledError:
+        logger.info("Watcher stopped")
+
+app = FastAPI(lifespan=lifespan)
 app.mount("/api/graphql", GraphQL(schema, debug=True))
+
+@app.on_event("startup")
+async def startup_event():
+    logger.info("FastAPI application starting up")
 
 @app.post("/api/user/create")
 def create_user_handler(user: UserCreate, response: Response):

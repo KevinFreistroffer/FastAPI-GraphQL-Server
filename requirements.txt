@@ -6,3 +6,4 @@ bcrypt==4.3.0
 ariadne
 graphql
 boto3
+motor

@@ -1,3 +1,3 @@
-from .user import query as user_query
+from .user import query
 
-resolvers = [user_query]
+resolvers = [query]

@@ -46,7 +46,7 @@ def get_user_by_username(username: str) -> dict:
 
 def create_user(user: UserCreate):
     # Validate username is available
-    existing_user = find_one('users', { 'name': user.name })
+    existing_user = find_one('users', { 'username': user.username })
 
     if existing_user:
         return create_error_response(
