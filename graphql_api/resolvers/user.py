@@ -1,4 +1,4 @@
-from ariadne import ObjectType, gql, make_executable_schema
+from ariadne import ObjectType, gql, make_executable_schema, SubscriptionType
 from operations.user_operations import (
     get_all_users,
     get_user_by_id,
@@ -11,9 +11,14 @@ from operations.user_operations import (
 from schemas.User import UserCreate, UserLogin
 from graphql import GraphQLError
 from pydantic import ValidationError
+from asyncio import Queue
+from pymongo import ASCENDING, DESCENDING
+import json
+import boto3
 
 query = ObjectType("Query")
 mutation = ObjectType("Mutation")
+subscription = SubscriptionType()
 
 @query.field("users")
 def resolve_users(*_):
@@ -146,3 +151,57 @@ def resolve_update_user(_, info, **user_info):
             "user": None,
             "error": str(e)
         }
+
+@subscription.source("userCreated")
+async def user_created_source(obj, info):
+    queue = Queue()
+    
+    # Get MongoDB collection
+    collection = get_collection('users')
+    
+    # Create change stream
+    change_stream = collection.watch(
+        [{'$match': {'operationType': 'insert'}}],
+        full_document='updateLookup'
+    )
+
+    try:
+        async for change in change_stream:
+            # Get the new user document
+            user_doc = change['fullDocument']
+            
+            # Serialize the document
+            user = serialize_document(user_doc)
+            
+            # Remove password before sending
+            if 'password' in user:
+                del user['password']
+            
+            # Trigger Lambda function for email
+            lambda_client = boto3.client('lambda')
+            lambda_client.invoke(
+                FunctionName='email-service-dev-hello',
+                InvocationType='Event',
+                Payload=json.dumps({
+                    'user': user,
+                    'email': user['email']
+                })
+            )
+            
+            # Put in queue for subscription
+            await queue.put({
+                "user": user,
+                "error": None
+            })
+            
+    except Exception as e:
+        await queue.put({
+            "user": None,
+            "error": str(e)
+        })
+    
+    return queue
+
+@subscription.field("userCreated")
+def user_created_resolver(event, info):
+    return event

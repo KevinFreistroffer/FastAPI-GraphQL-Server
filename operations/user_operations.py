@@ -28,19 +28,19 @@ def get_all_users():
     users = find_many('users')
     return users
 
-def get_user_by_id(_id: str):
+def get_user_by_id(_id: str) -> dict:
     result = find_one('users', {"_id": _id})
     return {"user": result}
 
-def get_user_by_name(name: str):
+def get_user_by_name(name: str) -> dict:
     result = find_one('users', {"name": name})
     return {"user": result}
 
-def get_user_by_email(email: str):
+def get_user_by_email(email: str) -> dict:
     result = find_one('users', {"email": email})
     return {"user": result}
 
-def get_user_by_username(username: str):
+def get_user_by_username(username: str) -> dict:
     result = find_one('users', {"username": username})
     return {"user": result}
 
@@ -82,7 +82,7 @@ def create_user(user: UserCreate):
         StatusCode.ERROR_INSERTING_USER
     )  
 
-def update_user(user_data: dict):
+def update_user(user_data: dict) -> dict:
     print("db op update_user()", user_data)
     user = UserUpdate(**user_data)
     print("update_user - user", user)
@@ -113,32 +113,15 @@ def update_user(user_data: dict):
     }
 
 def login(credentials: dict) -> bool:
-    print("login()", credentials)
     query = {}
     if credentials.get("username"):
         query["username"] = credentials.get("username")
     elif credentials.get("email"):
         query["email"] = credentials.get("email")
-
-    print("query = ", query)
     result = find_one('users', query, exclude_fields=None)
 
     if not result:
         return False
-    
-    is_valid_pw = verify_password(str(credentials.get("password")), result["password"])
-    print("is_valid_pw", is_valid_pw)
-    print("is_valid_pw", is_valid_pw)
-    print("is_valid_pw", is_valid_pw)
-    print("is_valid_pw", is_valid_pw)
-    print("is_valid_pw", is_valid_pw)
-    print("is_valid_pw", is_valid_pw)
-    print("is_valid_pw", is_valid_pw)
-    print("is_valid_pw", is_valid_pw)
-    print("is_valid_pw", is_valid_pw)
-    print("is_valid_pw", is_valid_pw)
-    print("is_valid_pw", is_valid_pw)
-    print("is_valid_pw", is_valid_pw)
-    print("is_valid_pw", is_valid_pw)
+    is_valid_pw = verify_password(credentials.get("password"), result["password"])
     return is_valid_pw
     

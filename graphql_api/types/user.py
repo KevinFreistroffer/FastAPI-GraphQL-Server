@@ -39,5 +39,9 @@ user = gql("""
         success: Boolean!,
         error: String
     }
+
+    type Subscription {
+        userCreated: UserResult
+    }
 """)
 

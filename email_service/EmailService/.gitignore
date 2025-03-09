@@ -14,7 +14,9 @@ sdist/
 var/
 *.egg-info/
 .installed.cfg
-*.egg
+venv/
+env/
+.env
 
 # Serverless directories
 .serverless

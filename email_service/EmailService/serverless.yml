@@ -8,7 +8,19 @@ service: EmailService
 provider:
   name: aws
   runtime: python3.12
+  environment: # Global environment variables
+    SMTP_SERVER: smtp.gmail.com
+    SMTP_PORT: 587
+    SENDER_EMAIL: ${env:SENDER_EMAIL}
+    SENDER_PASSWORD: ${env:SENDER_PASSWORD}
 
 functions:
   send_email:
     handler: handler.send_email
+    environment: # Function-specific environment variables (optional)
+      SMTP_SERVER: smtp.gmail.com
+      SMTP_PORT: 587
+      SENDER_EMAIL: ${env:SENDER_EMAIL}
+      SENDER_PASSWORD: ${env:SENDER_PASSWORD}
+
+
