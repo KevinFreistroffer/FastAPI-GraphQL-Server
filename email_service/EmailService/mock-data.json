@@ -1,0 +1,13 @@
+{
+  "body": {
+    "user": {
+      "_id": "65f4c8a12345678901234567",
+      "name": "John Doe",
+      "username": "johndoe",
+      "email": "john.doe@example.com",
+      "createdAt": "2024-03-15T10:30:00Z",
+      "isVerified": false
+    },
+    "email": "john.doe@example.com"
+  }
+} 
