@@ -56,12 +56,7 @@ def create_user(user: UserCreate):
     )  
 def get_all_users():
     users = find_many('users')
-    if not users:
-        return create_error_response(
-            StatusCode.USERS_NOT_FOUND,
-            "No users found"
-        )
-    return {"users": users}
+    return users
 
 def get_user_by_id(id: str):
     user = find_one('users', {"_id": id})
@@ -81,14 +76,13 @@ def get_user_by_name(name: str):
         )
     return {"users": users}
 
+def get_user_by_email(email: str):
+    result = find_one('users', {"email": email})
+    return {"user": result}
+
 def get_user_by_username(username: str):
-    users = find_many('users', {"username": username})
-    if not users:
-        return create_error_response(
-            StatusCode.USER_NOT_FOUND,
-            "User not found"
-        )
-    return {"users": users}
+    result = find_one('users', {"username": username})
+    return {"user": result}
 
 def update_user(user: UserUpdate):
     result = update_one(

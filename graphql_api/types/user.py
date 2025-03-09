@@ -1,12 +1,12 @@
 from ariadne import ObjectType, gql, make_executable_schema
 
-user = gql(
-    """
+
+user = gql("""
     type Query {
-        users: [User]!
-        user(_id: ID!): User
-        user_by_username(username: String!): UserByUsernameResult
-        user_by_email(email: String!): User
+        users: UsersResult
+        user(_id: ID!): UserResult
+        user_by_username(username: String!): UserResult
+        user_by_email(email: String!): UserResult
     }
 
     type User {
@@ -20,29 +20,34 @@ user = gql(
     }
 
     type Mutation {
-        create_user(name: String!, username: String!, email: String!, password: String!): CreateUserResult
-        update_user(_id: ID!, name: String, password: String): User
+        create_user(name: String!, username: String!, email: String!, password: String!): UserResult
+        update_user(_id: ID!, name: String, password: String): UserResult
         delete_user(_id: ID!): Boolean!
     }
 
-    type UserByUsernameResult {
+    type UserResult {
         user: User
         error: String
     }
 
-    type CreateUserResult {
-        user: User
+    type UsersResult {
+        users: [User]!
         error: String
     }
 
-    # extend type Mutation {
-    #     createUser(
-    #         name: String!,
-    #         username: String!,
-    #         email: String!,
-    #         password: String!
-    #     ): CreateUserResult
-    # }
+    extend type Mutation {
+        createUser(
+            username: String!
+            password: String!
+            email: String!
+            name: String
+        ): User
 
-    """
-)
+        updateUser(
+            _id: ID!
+            password: String!
+            name: String
+        ): User
+    }
+""")
+

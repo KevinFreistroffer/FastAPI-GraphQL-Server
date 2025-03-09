@@ -36,7 +36,8 @@ class StatusCode(Enum):
 
 # Optional: Create error response helper
 def create_error_response(status_code: StatusCode, message: str = None) -> Dict:
-    """Create a standardized error response"""
+    print(status_code, message)
+    print(message)
     return {
         "error": message or status_code.name.lower().replace('_', ' '),
         "status_code": status_code.value
