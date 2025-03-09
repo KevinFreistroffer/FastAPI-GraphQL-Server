@@ -6,6 +6,7 @@ user = gql("""
         user_by_id(_id: ID!): UserResult
         user_by_username(username: String!): UserResult
         user_by_email(email: String!): UserResult
+        login(username: String, email: String, password: String!): LoginResult
     }
 
     type Mutation {
@@ -31,6 +32,11 @@ user = gql("""
 
     type UsersResult {
         users: [User]!
+        error: String
+    }
+
+    type LoginResult {
+        success: Boolean!,
         error: String
     }
 """)

@@ -1,13 +1,14 @@
 from ariadne import ObjectType, gql, make_executable_schema
 from operations.user_operations import (
     get_all_users,
-    create_user,
     get_user_by_id,
     get_user_by_username,
-    get_user_by_email,
-    update_user
+    get_user_by_email, 
+    create_user,
+    update_user,
+    login
 )
-from schemas.User import UserCreate
+from schemas.User import UserCreate, UserLogin
 from graphql import GraphQLError
 from pydantic import ValidationError
 
@@ -73,6 +74,23 @@ def resolve_get_user_by_email(user, info, email):
         print(f"Error fetching users: {e}")
         return {
             "user": None,
+            "error": str(e)
+        }
+
+@query.field("login")
+def resolve_login(user, info, **credentials):
+    user_credentials = UserLogin(**credentials)
+    print("user_creds", user_credentials)
+    try:
+        result = login(user_credentials.model_dump())
+        return {
+            "success": result,
+            "error": None
+        }
+    except Exception as e:
+        print(f"Error logging in: {e}")
+        return {
+            "success": False,
             "error": str(e)
         }
 

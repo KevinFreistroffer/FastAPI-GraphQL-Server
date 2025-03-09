@@ -50,3 +50,31 @@ class UserUpdate(BaseModel):
         json_encoders = {
             int: str  # Convert int to string for ID fields
         }
+        
+        
+class UserLogin(BaseModel):
+    username: Optional[str] = None
+    email: Optional[EmailStr] = None
+    password: str
+
+    @validator('username')
+    def username_validator(cls, v):
+        if ' ' in v:
+            raise ValueError("Username must not contain spaces")
+        if len(v) < 5:
+            raise ValueError("Username must be at least 5 characters")
+        return v.lower()
+    
+    @validator('password')
+    def password_validator(cls, v):
+        if ' ' in v:
+            raise ValueError("Password must not contain spaces")
+        if len(v) < 5:
+            raise ValueError("Password must be at least 5 characters")
+        return v.lower()
+
+    class Config:
+        populate_by_name = True
+        json_encoders = {
+            int: str  # Convert int to string for ID fields
+        }

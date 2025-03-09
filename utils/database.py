@@ -57,7 +57,7 @@ def insert_one(collection_name: str, document: dict):
     return result
     return {"_id": str(result.inserted_id)}  # Convert ObjectId to string
 
-def find_one(collection_name: str, query: dict):
+def find_one(collection_name: str, query: dict, exclude_fields = exclude_fields):
     print("find_one", query)
     """Find a single document in a collection."""
 
