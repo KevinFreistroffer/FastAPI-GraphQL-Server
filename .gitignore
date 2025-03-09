@@ -24,4 +24,4 @@ sql_app.db
 .env
 .env.local
 
-email_service
+/email_service/
