@@ -58,23 +58,18 @@ def get_all_users():
     users = find_many('users')
     return users
 
-def get_user_by_id(id: str):
-    user = find_one('users', {"_id": id})
-    if not user:
-        return create_error_response(
-            StatusCode.USER_NOT_FOUND,
-            "User not found"
-        )
-    return user
+def get_user_by_id(_id: str):
+    result = find_one('users', {"_id": _id})
+    print(result)
+    print(result)
+    print(result)
+    print(result)
+    print(result)
+    return {"user": result}
 
 def get_user_by_name(name: str):
-    users = find_many('users', {"name": name})
-    if not users:
-        return create_error_response(
-            StatusCode.USER_NOT_FOUND,
-            "User not found"
-        )
-    return {"users": users}
+    result = find_one('users', {"name": name})
+    return {"user": result}
 
 def get_user_by_email(email: str):
     result = find_one('users', {"email": email})
@@ -84,16 +79,33 @@ def get_user_by_username(username: str):
     result = find_one('users', {"username": username})
     return {"user": result}
 
-def update_user(user: UserUpdate):
+def update_user(user_data: dict):
+    print("db op update_user()", user_data)
+    user = UserUpdate(**user_data)
+    
     result = update_one(
         'users',
         {"_id": user.id},
-        user.model_dump(exclude_unset=True)
+        user.model_dump(exclude_unset=True, exclude={"id"})
     )
+    
+    # Print the UpdateResult details
+    print(f"Result details:")
+    print(f"- Matched count: {result.matched_count}")
+    print(f"- Modified count: {result.modified_count}")
+    
+    # Check if update was successful
     if not result.modified_count:
-        return create_error_response(
-            StatusCode.COULD_NOT_UPDATE,
-            "User not found"
-        )
-    return find_one('users', {"_id": user.id})
+        return {
+            "user": None,
+            "error": "User not found"
+        }
+    
+    # Get the updated user
+    updated_user = find_one('users', {"_id": user.id})
+    print("updated_user", updated_user)
+    return {
+        "user": updated_user,
+        "error": None
+    }
     

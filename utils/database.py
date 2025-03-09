@@ -6,6 +6,7 @@ from functools import lru_cache
 from bson import ObjectId
 import json
 from json import JSONEncoder
+from bson import ObjectId
 
 load_dotenv()
 
@@ -57,7 +58,11 @@ def insert_one(collection_name: str, document: dict):
     return {"_id": str(result.inserted_id)}  # Convert ObjectId to string
 
 def find_one(collection_name: str, query: dict):
+    print("find_one", query)
     """Find a single document in a collection."""
+
+    if '_id' in query and isinstance(query['_id'], str):
+        query['_id'] = ObjectId(query['_id'])
     collection = get_collection(collection_name)
     result = collection.find_one(query, exclude_fields)
     return serialize_document(result) if result else None
@@ -70,5 +75,6 @@ def find_many(collection_name: str, query: dict = None):
 
 def update_one(collection_name: str, query: dict, update: dict):
     """Update a single document in a collection."""
+    print("update_one", query, update)
     collection = get_collection(collection_name)
     return collection.update_one(query, {"$set": update}) 

@@ -1,5 +1,12 @@
 from ariadne import ObjectType, gql, make_executable_schema
-from operations.user_operations import get_all_users, create_user, get_user_by_username, get_user_by_email, update_user
+from operations.user_operations import (
+    get_all_users,
+    create_user,
+    get_user_by_id,
+    get_user_by_username,
+    get_user_by_email,
+    update_user
+)
 from schemas.User import UserCreate
 from graphql import GraphQLError
 from pydantic import ValidationError
@@ -19,6 +26,22 @@ def resolve_users(*_):
         print(f"Error fetching users: {e}")
         return {
             "users": [],
+            "error": str(e)
+        }
+
+@query.field("user_by_id")
+def resolve_get_user_by_id(obj, info, _id):
+    try:
+        result = get_user_by_id(_id)
+        print("result", result)
+        return {
+            "user": result["user"] if result["user"] is not None else None,
+            "error": None if result["user"] is not None else "User not found."
+        }
+    except Exception as e:
+        print(f"Error fetching users: {e}")
+        return {
+            "user": None,
             "error": str(e)
         }
 
@@ -53,9 +76,9 @@ def resolve_get_user_by_email(user, info, email):
             "error": str(e)
         }
 
-
 @mutation.field("create_user")
 def resolve_create_user(_, info, **user_info):
+    print("CREATE USER RESOLVER")
     try:
         user = UserCreate(**user_info)
         result = create_user(user)
@@ -94,8 +117,8 @@ def resolve_create_user(_, info, **user_info):
 @mutation.field("update_user")
 def resolve_update_user(_, info, **user_info):
     try:
-        result = update_user(**user_info)
-        print(result)
+        result = update_user(user_info)
+        print("resolve_update_user result", result)
 
         return {
             "user": result["user"] or {},

@@ -41,6 +41,12 @@ class UserCreate(BaseModel):
         
 
 class UserUpdate(BaseModel):
-    id: int
+    id: str = Field(alias='_id')
     name: Optional[str] = None
     password: Optional[str] = None
+
+    class Config:
+        populate_by_name = True
+        json_encoders = {
+            int: str  # Convert int to string for ID fields
+        }
