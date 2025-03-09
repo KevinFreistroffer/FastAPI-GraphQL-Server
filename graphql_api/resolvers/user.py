@@ -118,8 +118,6 @@ def resolve_create_user(_, info, **user_info):
 def resolve_update_user(_, info, **user_info):
     try:
         result = update_user(user_info)
-        print("resolve_update_user result", result)
-
         return {
             "user": result["user"] or {},
             "error": None

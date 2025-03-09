@@ -68,7 +68,9 @@ def find_one(collection_name: str, query: dict):
     return serialize_document(result) if result else None
 
 def find_many(collection_name: str, query: dict = None):
-    """Find multiple documents in a collection."""
+    """Find multiple documents in a collection."""  
+    if '_id' in query and isinstance(query['_id'], str):
+        query['_id'] = ObjectId(query['_id'])
     collection = get_collection(collection_name)
     results = list(collection.find(query or {}, exclude_fields))
     return serialize_document(results)
@@ -76,5 +78,7 @@ def find_many(collection_name: str, query: dict = None):
 def update_one(collection_name: str, query: dict, update: dict):
     """Update a single document in a collection."""
     print("update_one", query, update)
+    if '_id' in query and isinstance(query['_id'], str):
+        query['_id'] = ObjectId(query['_id'])
     collection = get_collection(collection_name)
     return collection.update_one(query, {"$set": update}) 

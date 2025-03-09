@@ -17,6 +17,27 @@ def get_user_with_retry(user_id, max_attempts: int = 3, delay: float = 0.5) -> O
         time.sleep(delay)  # Wait before next attempt
     return None
 
+def get_all_users():
+    users = find_many('users')
+    return users
+
+def get_user_by_id(_id: str):
+    result = find_one('users', {"_id": _id})
+    return {"user": result}
+
+def get_user_by_name(name: str):
+    result = find_one('users', {"name": name})
+    return {"user": result}
+
+def get_user_by_email(email: str):
+    result = find_one('users', {"email": email})
+    return {"user": result}
+
+def get_user_by_username(username: str):
+    result = find_one('users', {"username": username})
+    return {"user": result}
+
+
 def create_user(user: UserCreate):
     # Validate username is available
     existing_user = find_one('users', { 'name': user.name })
@@ -54,35 +75,12 @@ def create_user(user: UserCreate):
     return create_error_response(
         StatusCode.ERROR_INSERTING_USER
     )  
-def get_all_users():
-    users = find_many('users')
-    return users
 
-def get_user_by_id(_id: str):
-    result = find_one('users', {"_id": _id})
-    print(result)
-    print(result)
-    print(result)
-    print(result)
-    print(result)
-    return {"user": result}
-
-def get_user_by_name(name: str):
-    result = find_one('users', {"name": name})
-    return {"user": result}
-
-def get_user_by_email(email: str):
-    result = find_one('users', {"email": email})
-    return {"user": result}
-
-def get_user_by_username(username: str):
-    result = find_one('users', {"username": username})
-    return {"user": result}
 
 def update_user(user_data: dict):
     print("db op update_user()", user_data)
     user = UserUpdate(**user_data)
-    
+    print("update_user - user", user)
     result = update_one(
         'users',
         {"_id": user.id},
