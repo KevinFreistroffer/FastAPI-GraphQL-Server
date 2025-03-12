@@ -15,10 +15,6 @@ user = gql("""
         delete_user(_id: ID!): Boolean!
     }
 
-    # type Subscription {
-    #     userCreated: UserResult
-    # }
-
     type User {
         _id: ID!
         name: String!
