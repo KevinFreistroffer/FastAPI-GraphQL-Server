@@ -1,3 +1,3 @@
-from .user import query
+from .user import query, mutation
 
-resolvers = [query]
+resolvers = [query, mutation]

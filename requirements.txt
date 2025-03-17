@@ -1,9 +1,12 @@
+Cython>=3.0.8
 fastapi[standard]
 sqlalchemy
 aiosqlite
-pymongo==3.12.0
-bcrypt==4.3.0
+pymongo
+bcrypt
 ariadne
 graphql
 boto3
 motor
+PyJWT
+secrets

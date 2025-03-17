@@ -6,19 +6,16 @@ user = gql("""
         user_by_id(_id: ID!): UserResult
         user_by_username(username: String!): UserResult
         user_by_email(email: String!): UserResult
-        login(username: String, email: String, password: String!): LoginResult
+        login(username: String, email: String, password: String!): SimpleResult
     }
 
     type Mutation {
         create_user(name: String!, username: String!, email: String!, password: String!): UserResult
         update_user(_id: ID!, name: String, password: String): UserResult
         delete_user(_id: ID!): Boolean!
+        send_reset_password_email(email: String!): SimpleResult
     }
-
-    # type Subscription {
-    #     userCreated: UserResult
-    # }
-
+    
     type User {
         _id: ID!
         name: String!
@@ -39,7 +36,7 @@ user = gql("""
         error: String
     }
 
-    type LoginResult {
+    type SimpleResult {
         success: Boolean!,
         error: String
     }
