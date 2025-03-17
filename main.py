@@ -1,4 +1,4 @@
-from typing import Union
+from typing import Union, List, Dict, Any
 from fastapi import FastAPI, Response, HTTPException
 from fastapi.responses import JSONResponse
 from schemas.User import UserCreate, UserUpdate
@@ -18,18 +18,59 @@ from bson.json_util import dumps
 import asyncio
 import json
 from utils.watch_mongodb import watch_mongodb
+from pydantic import BaseModel, Field
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
+# MongoDB connection string
+MONGODB_URI = "mongodb+srv://admin:y1Xa7bylHknE2sWs@cluster0.wbjpx.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0"
+DB_NAME = "matrix-datasets"
+COLLECTION_NAME = "matrix-datasets"
+
+# Pydantic models
+class DatasetBase(BaseModel):
+    name: str
+    description: str = None
+    data: Dict[str, Any] = None
+    metadata: Dict[str, Any] = Field(default_factory=dict)
+
+class DatasetCreate(DatasetBase):
+    pass
+
+class DatasetUpdate(BaseModel):
+    id: str
+    name: str = None
+    description: str = None
+    data: Dict[str, Any] = None
+    metadata: Dict[str, Any] = None
+
+# Database client
+client = None
+db = None
+collection = None
+
 @asynccontextmanager
 async def lifespan(app: FastAPI):
+    # Setup: connect to MongoDB
+    global client, db, collection
+    logger.info("Connecting to MongoDB...")
+    client = AsyncIOMotorClient(MONGODB_URI)
+    db = client[DB_NAME]
+    collection = db[COLLECTION_NAME]
+    logger.info(f"Connected to MongoDB database: {DB_NAME}, collection: {COLLECTION_NAME}")
+    
     # Start watcher in background task
     logger.info("Starting lifespan")
     watcher_task = asyncio.create_task(watch_mongodb())
     logger.info("Watcher task created")
     
     yield
+    
+    # Cleanup: close MongoDB connection
+    logger.info("Closing MongoDB connection...")
+    client.close()
+    logger.info("MongoDB connection closed")
     
     # Cleanup
     logger.info("Shutting down watcher")
@@ -150,5 +191,154 @@ def update_user_handler(user: UserUpdate):
     except Exception as e:
         raise HTTPException(
             status_code=StatusCode.CAUGHT_ERROR.value,
+            detail=f"Unexpected error: {str(e)}"
+        )
+
+@app.get("/")
+async def root():
+    return {"message": "Welcome to Matrix Datasets API"}
+
+@app.post("/api/datasets", response_model=Dict[str, Any])
+async def create_dataset(dataset: DatasetCreate):
+    try:
+        dataset_dict = dataset.model_dump()
+        result = await collection.insert_one(dataset_dict)
+        
+        if result.inserted_id:
+            created_dataset = await collection.find_one({"_id": result.inserted_id})
+            created_dataset["id"] = str(created_dataset.pop("_id"))
+            return created_dataset
+        else:
+            return JSONResponse(
+                status_code=500,
+                content={"error": "Failed to create dataset"}
+            )
+    except PyMongoError as e:
+        logger.error(f"Database error: {str(e)}")
+        raise HTTPException(
+            status_code=500,
+            detail=f"Database error: {str(e)}"
+        )
+    except Exception as e:
+        logger.error(f"Unexpected error: {str(e)}")
+        raise HTTPException(
+            status_code=500,
+            detail=f"Unexpected error: {str(e)}"
+        )
+
+@app.get("/api/datasets", response_model=List[Dict[str, Any]])
+async def get_all_datasets():
+    try:
+        datasets = []
+        cursor = collection.find({})
+        async for document in cursor:
+            document["id"] = str(document.pop("_id"))
+            datasets.append(document)
+        return datasets
+    except PyMongoError as e:
+        logger.error(f"Database error: {str(e)}")
+        raise HTTPException(
+            status_code=500,
+            detail=f"Database error: {str(e)}"
+        )
+    except Exception as e:
+        logger.error(f"Unexpected error: {str(e)}")
+        raise HTTPException(
+            status_code=500,
+            detail=f"Unexpected error: {str(e)}"
+        )
+
+@app.get("/api/datasets/{dataset_id}", response_model=Dict[str, Any])
+async def get_dataset_by_id(dataset_id: str):
+    try:
+        from bson.objectid import ObjectId
+        
+        dataset = await collection.find_one({"_id": ObjectId(dataset_id)})
+        if dataset:
+            dataset["id"] = str(dataset.pop("_id"))
+            return dataset
+        else:
+            raise HTTPException(
+                status_code=404,
+                detail=f"Dataset with ID {dataset_id} not found"
+            )
+    except PyMongoError as e:
+        logger.error(f"Database error: {str(e)}")
+        raise HTTPException(
+            status_code=500,
+            detail=f"Database error: {str(e)}"
+        )
+    except Exception as e:
+        logger.error(f"Unexpected error: {str(e)}")
+        raise HTTPException(
+            status_code=500,
+            detail=f"Unexpected error: {str(e)}"
+        )
+
+@app.put("/api/datasets/{dataset_id}", response_model=Dict[str, Any])
+async def update_dataset(dataset_id: str, dataset: DatasetUpdate):
+    try:
+        from bson.objectid import ObjectId
+        
+        update_data = {k: v for k, v in dataset.model_dump().items() 
+                      if v is not None and k != "id"}
+        
+        if not update_data:
+            raise HTTPException(
+                status_code=400,
+                detail="No valid update data provided"
+            )
+        
+        result = await collection.update_one(
+            {"_id": ObjectId(dataset_id)},
+            {"$set": update_data}
+        )
+        
+        if result.matched_count:
+            updated_dataset = await collection.find_one({"_id": ObjectId(dataset_id)})
+            updated_dataset["id"] = str(updated_dataset.pop("_id"))
+            return updated_dataset
+        else:
+            raise HTTPException(
+                status_code=404,
+                detail=f"Dataset with ID {dataset_id} not found"
+            )
+    except PyMongoError as e:
+        logger.error(f"Database error: {str(e)}")
+        raise HTTPException(
+            status_code=500,
+            detail=f"Database error: {str(e)}"
+        )
+    except Exception as e:
+        logger.error(f"Unexpected error: {str(e)}")
+        raise HTTPException(
+            status_code=500,
+            detail=f"Unexpected error: {str(e)}"
+        )
+
+@app.delete("/api/datasets/{dataset_id}", response_model=Dict[str, str])
+async def delete_dataset(dataset_id: str):
+    try:
+        from bson.objectid import ObjectId
+        
+        result = await collection.delete_one({"_id": ObjectId(dataset_id)})
+        
+        if result.deleted_count:
+            return {"message": f"Dataset with ID {dataset_id} deleted successfully"}
+        else:
+            raise HTTPException(
+                status_code=404,
+                detail=f"Dataset with ID {dataset_id} not found"
+            )
+    except PyMongoError as e:
+        logger.error(f"Database error: {str(e)}")
+        raise HTTPException(
+            status_code=500,
+            detail=f"Database error: {str(e)}"
+        )
+    except Exception as e:
+        logger.error(f"Unexpected error: {str(e)}")
+        raise HTTPException(
+            status_code=500,
             detail=f"Unexpected error: {str(e)}"
         )
