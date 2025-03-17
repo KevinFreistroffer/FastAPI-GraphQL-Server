@@ -1,4 +1,4 @@
-from typing import Union, List, Dict, Any
+from typing import Union, List, Dict, Any, Optional
 from fastapi import FastAPI, Response, HTTPException
 from fastapi.responses import JSONResponse
 from schemas.User import UserCreate, UserUpdate
@@ -19,6 +19,8 @@ import asyncio
 import json
 from utils.watch_mongodb import watch_mongodb
 from pydantic import BaseModel, Field
+import uuid
+from datetime import datetime
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
@@ -35,8 +37,13 @@ class DatasetBase(BaseModel):
     data: Dict[str, Any] = None
     metadata: Dict[str, Any] = Field(default_factory=dict)
 
-class DatasetCreate(DatasetBase):
-    pass
+class DatasetCreate(BaseModel):
+    name: str
+    description: Optional[str] = None
+    
+    # Allow any additional fields
+    class Config:
+        extra = "allow"
 
 class DatasetUpdate(BaseModel):
     id: str
@@ -111,46 +118,34 @@ def create_user_handler(user: UserCreate, response: Response):
         )
 
 @app.get("/api/users")
-def get_users_handler():
+def get_users():
     try:
-        result = get_all_users()
-        if "error" in result:
-            raise HTTPException(
-                status_code=result["status_code"],
-                detail=result["error"]
-            )
-        return result
-    except PyMongoError as e:
-        raise HTTPException(
-            status_code=StatusCode.CAUGHT_ERROR.value,
-            detail=f"Database error: {str(e)}"
-        )
+        with Session(engine) as session:
+            stmt = select(User)
+            result = session.execute(stmt)
+            users = [row[0].to_dict() for row in result]
+            return {"users": users}
     except Exception as e:
-        raise HTTPException(
-            status_code=StatusCode.CAUGHT_ERROR.value,
-            detail=f"Unexpected error: {str(e)}"
-        )
+        print(e)
+        return {"users": []}
 
 @app.get("/api/user/id/{id}")
-def get_user_by_id_handler(id: str):
+def get_user_by_id(id: int):
     try:
-        result = get_user_by_id(id)
-        if "error" in result:
-            raise HTTPException(
-                status_code=result["status_code"],
-                detail=result["error"]
-            )
-        return result
-    except PyMongoError as e:
-        raise HTTPException(
-            status_code=StatusCode.CAUGHT_ERROR.value,
-            detail=f"Database error: {str(e)}"
-        )
+        with Session(engine) as session:
+            stmt = select(User).where(User.id == id)
+            result = session.execute(stmt).first()
+            if result:
+                user = result[0]
+                return {
+                    "id": user.id,
+                    "name": user.name,
+                    "fullname": user.fullname
+                }
+            return {"error": "User not found"}
     except Exception as e:
-        raise HTTPException(
-            status_code=StatusCode.CAUGHT_ERROR.value,
-            detail=f"Unexpected error: {str(e)}"
-        )
+        print(e)
+        return {"error": str(e)}
 
 @app.get("/api/user/name/{name}")
 def get_user_by_name_handler(name: str):
@@ -199,32 +194,45 @@ async def root():
     return {"message": "Welcome to Matrix Datasets API"}
 
 @app.post("/api/datasets", response_model=Dict[str, Any])
-async def create_dataset(dataset: DatasetCreate):
+async def create_dataset(dataset: Dict[str, Any]):
+    """
+    Create a new dataset with completely dynamic fields.
+    MongoDB will store whatever is in the dataset dict.
+    """
+
+    print("dataset", dataset)
+    print("dataset", dataset)
+    print("dataset", dataset)
+    print("dataset", dataset)
+    print("dataset", dataset)
+    print("dataset", dataset)
+    print("dataset", dataset)
+    print("dataset", dataset)
+    print("dataset", dataset)
+    print("dataset", dataset)
+    print("dataset", dataset)
+    print("dataset", dataset)
+    print("dataset", dataset)
+    print("dataset", dataset)
+    print("dataset", dataset)
+    print("dataset", dataset)
     try:
-        dataset_dict = dataset.model_dump()
-        result = await collection.insert_one(dataset_dict)
+        # Add metadata
+        dataset["created_at"] = datetime.utcnow()
+        dataset["_id"] = str(uuid.uuid4())
         
-        if result.inserted_id:
-            created_dataset = await collection.find_one({"_id": result.inserted_id})
-            created_dataset["id"] = str(created_dataset.pop("_id"))
-            return created_dataset
-        else:
-            return JSONResponse(
-                status_code=500,
-                content={"error": "Failed to create dataset"}
-            )
-    except PyMongoError as e:
-        logger.error(f"Database error: {str(e)}")
-        raise HTTPException(
-            status_code=500,
-            detail=f"Database error: {str(e)}"
-        )
+        # Insert into MongoDB
+        result = await db.datasets.insert_one(dataset)
+
+        print("result", result)
+        
+        return {
+            "status": "success",
+            "message": "Dataset created successfully",
+            "dataset_id": dataset["_id"]
+        }
     except Exception as e:
-        logger.error(f"Unexpected error: {str(e)}")
-        raise HTTPException(
-            status_code=500,
-            detail=f"Unexpected error: {str(e)}"
-        )
+        raise HTTPException(status_code=500, detail=f"Failed to create dataset: {str(e)}")
 
 @app.get("/api/datasets", response_model=List[Dict[str, Any]])
 async def get_all_datasets():

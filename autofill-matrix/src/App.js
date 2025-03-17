@@ -49,7 +49,7 @@ function App() {
   const insertCandidateToMongoDB = async (candidateData) => {
     try {
       // Make API call to your backend service
-      const response = await fetch('/api/candidates', {
+      const response = await fetch('http://localhost:8000/api/datasets', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

@@ -5,8 +5,8 @@ aiosqlite
 pymongo
 bcrypt
 ariadne
-graphql
+graphql-core>=3.2.0
 boto3
 motor
 PyJWT
-secrets
+pyOpenSSL  # Add this instead of the 'secrets' package

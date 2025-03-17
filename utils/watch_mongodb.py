@@ -35,10 +35,10 @@ async def watch_mongodb():
                     full_document='updateLookup'
                 )
                 
-                logger.info("Change stream created, waiting for changes...")
+                # logger.info("Change stream created, waiting for changes...")
                 
                 async for change in change_stream:
-                    logger.info(f"Change detected: {json.dumps(change, default=str)}")
+                    # logger.info(f"Change detected: {json.dumps(change, default=str)}")
                     
                     if change['operationType'] == 'insert':
                         user = change['fullDocument']
